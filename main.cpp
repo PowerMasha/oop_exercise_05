@@ -41,7 +41,7 @@ int main() {
                 std::cin >> N;
                 std::cout << "введите квадрат: ";
                 kva =Square<int>(std::cin);
-                q.insert_by_number(N, kva);
+                q.insert_by_number(N+1, kva);
                 break;
             }
             case '3': {
@@ -55,7 +55,7 @@ int main() {
             case '5': {
                 std::cout << "позиция для удаления: ";
                 std::cin >> N;
-                q.delete_by_number(N);
+                q.delete_by_number(N+1);
                 break;
             }
             case '6': {
