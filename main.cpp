@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include "square.h"
-#include "conteiner/list.h"
+#include "conteiners/list.h"
 
 int main() {
     size_t N;
@@ -34,14 +34,14 @@ int main() {
                 kva = Square<int>(std::cin);
                 try{
                     kva.Check();
-                }catch(std::logic_error& err1){
-                    std::cout << err1.what() << std::endl;
+                }catch(std::logic_error& err){
+                    std::cout << err.what() << std::endl;
                     break;
                 }
                 try{
                     q.push_front(kva);}
-                catch(std::logic_error& err2){
-                    std::cout << err2.what()<<std::endl;
+                catch(std::logic_error& err){
+                    std::cout << err.what()<<std::endl;
                     break;
                 }
                 break;
@@ -53,15 +53,15 @@ int main() {
                 kva = Square<int>(std::cin);
                 try {
                     kva.Check();
-                } catch (std::logic_error &err3) {
-                    std::cout << err3.what() << std::endl;
+                } catch (std::logic_error &err) {
+                    std::cout << err.what() << std::endl;
                     break;
                 }
                 try {
                     q.push_back(kva);
                 }
-                catch (std::logic_error &err4) {
-                    std::cout << err4.what() << std::endl;
+                catch (std::logic_error &err) {
+                    std::cout << err.what() << std::endl;
                     break;
                 }
                 break;
@@ -74,16 +74,16 @@ int main() {
                 kva = Square<int>(std::cin);
                 try {
                     kva.Check();
-                } catch (std::logic_error &err5) {
-                    std::cout << err5.what() << std::endl;
+                } catch (std::logic_error &err) {
+                    std::cout << err.what() << std::endl;
                     break;
                 }
                 try {
                     q.insert_by_number(N , kva);
                 }
-                catch (std::logic_error &err6) {
+                catch (std::logic_error &err) {
                     q.delete_by_number(N);
-                    std::cout << err6.what() << std::endl;
+                    std::cout << err.what() << std::endl;
                     break;
                 }
                 break;
@@ -132,3 +132,4 @@ int main() {
     }
     return 0;
 }
+
