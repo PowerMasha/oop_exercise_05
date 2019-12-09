@@ -1,0 +1,307 @@
+#ifndef LIST_H
+#define LIST_H
+
+#include <iterator>
+#include <memory>
+#include "../square.h"
+
+namespace containers {
+
+
+    template<class T>
+    class list {
+    private:
+        struct element;
+        unsigned int size = 0;
+    public:
+        list() = default;
+
+        class forward_iterator {
+        public:
+            using value_type = T;
+            using reference = T&;
+            using pointer = T*;
+            using difference_type = std::ptrdiff_t; //для арифметики указателей и индексации массива
+            using iterator_category = std::forward_iterator_tag;//пустой класс для идентификации прямого итератора
+            explicit forward_iterator(element* ptr);
+            T& operator*();
+            forward_iterator& operator++();
+            forward_iterator operator++(int);
+            bool operator== (const forward_iterator& other) const;
+            bool operator!= (const forward_iterator& other) const;
+
+        private:
+            element* it_ptr;
+            friend list;
+
+        };
+        forward_iterator begin();
+        forward_iterator end();
+        void push_back(const T& value);
+        void push_front(const T& value);
+        void pop_back();
+	    void pop_front();
+        size_t length();
+        void delete_by_it(forward_iterator d_it);
+        void delete_by_number(size_t N);
+        void insert_by_it(forward_iterator ins_it, T& value);
+        void insert_by_number(size_t N, T& value);
+	    T& operator[](size_t index) ;
+        T& top_front();
+        T& top_back();
+        list& operator=(list&& other);
+
+    private:
+        struct element {
+            T value;
+            std::shared_ptr<element> next_element = nullptr;
+            std::shared_ptr<element> prev_element = nullptr;
+            forward_iterator next();
+        };
+        static std::shared_ptr<element> push_impl(std::shared_ptr<element> cur);
+        static std::shared_ptr<element> pop_impl(std::shared_ptr<element> cur);
+        std::shared_ptr<element> first = nullptr;
+    };//===============================end-of-class-list======================================//
+
+    template<class T>
+    typename list<T>::forward_iterator list<T>::begin() {
+        return forward_iterator(first.get());
+    }
+
+    template<class T>
+    typename list<T>::forward_iterator list<T>::end() {
+        return forward_iterator(nullptr);
+    }
+//=========================base-methods-of-list==========================================//
+    template<class T>
+    size_t list<T>::length() {
+        return size;
+    }
+
+    template<class T>
+    void list<T>::push_front(const T& value) {
+        if (first == nullptr){
+            first = std::shared_ptr<element>(new element{value});
+        } else {
+	    if (first->value.Area() < value.Area()){
+	    	throw std::logic_error("Area is too big");
+	    }
+            auto tmp = std::shared_ptr<element>(new element{value});
+            first->prev_element = tmp;
+            tmp->next_element = first;
+            first = tmp;
+        }
+        size++;
+    }
+
+    template<class T>
+    void list<T>::push_back(const T& value) {
+	if (first == nullptr) {
+		first = std::shared_ptr<element>(new element{value});
+	}else{
+		if (value.Area() < push_impl(first) -> value.Area()){
+	    		throw std::logic_error("Area is too low");
+	    	}
+		auto *tmp = new element{value};
+		tmp-> prev_element = push_impl(first);
+		push_impl(first) -> next_element = std::shared_ptr<element>(tmp);
+	}
+	size++;
+    }
+
+    template<class T>
+    std::shared_ptr<typename list<T>::element> list<T>::push_impl(std::shared_ptr<element> cur) {
+		if (cur -> next_element != nullptr) {
+		    return push_impl(cur->next_element);
+		}
+		return cur;
+	}
+
+    template<class T>
+    void list<T>::pop_front() {
+        if (size == 0) {
+            throw std::logic_error ("stack is empty");
+        }
+	
+        first = first->next_element;
+	first->prev_element = nullptr;
+        size--;
+    }
+
+	template<class T>
+	void list<T>::pop_back() {
+		if (size == 0) {
+			throw std::logic_error("can`t pop from empty list");
+		}
+		first = pop_impl(first);
+		size--;
+	}
+	
+
+	template<class T>
+	std::shared_ptr<typename list<T>::element> list<T>::pop_impl(std::shared_ptr<element> cur) {
+		if (cur->next_element != nullptr) {
+			cur->next_element = pop_impl(cur->next_element);
+			return cur;
+		}
+		return nullptr;
+	}
+
+    template<class T>
+    T& list<T>::top_front() {
+        if (size == 0) {
+            throw std::logic_error("list is empty");
+        }
+        return first->value;
+    }
+
+    template<class T>
+    T& list<T>::top_back() {
+        if (size == 0) {
+            throw std::logic_error("list is empty");
+        }
+        forward_iterator i = this->begin();
+        while ( i.it_ptr->next() != this->end()) {
+            i++;
+        }
+        return *i;
+    }
+
+
+//=================================advanced-methods========================================//
+
+    template<class T>
+    void list<T>::delete_by_it(containers::list<T>::forward_iterator d_it) { //удаление по итератору
+        if (d_it == this->begin()) {
+            this->pop_front();
+            return;
+        }
+        if (d_it == this->end()) {
+            if (size == 0) {
+                throw std::logic_error("can`t pop from empty list");
+            }
+            first = pop_impl(first);
+            return;
+        }
+
+        if (d_it.it_ptr == nullptr) throw std::logic_error ("out of borders");
+        d_it.it_ptr->prev_element->next_element = d_it.it_ptr->next_element;
+        d_it.it_ptr->next_element->prev_element = d_it.it_ptr->prev_element;
+
+        size--;
+    }
+//удаление по номеру
+    template<class T>
+    void list<T>::delete_by_number(size_t N) {
+        forward_iterator it = this->begin();
+        for (size_t i = 1; i <= N+1; ++i) {
+            if (i == N+1) break;
+            ++it;
+        }
+        this->delete_by_it(it);
+    }
+
+    template<class T>
+    void list<T>::insert_by_it(containers::list<T>::forward_iterator ins_it, T& value) {
+
+        auto tmp = std::shared_ptr<element>(new element{value});
+        if (ins_it == this->begin()) {
+            tmp->next_element = first;
+            first->prev_element = tmp;
+            first = tmp;
+            size++;
+            return;
+        }
+        if (ins_it == this->end()) {
+            tmp-> prev_element = push_impl(first);
+            push_impl(first) -> next_element = std::shared_ptr<element>(tmp);
+            size++;
+            return;
+        }
+
+        tmp->next_element = std::shared_ptr<element>(ins_it.it_ptr);
+        tmp->prev_element = ins_it.it_ptr->prev_element;
+        tmp->prev_element->next_element = tmp;
+        tmp->next_element->prev_element = tmp;
+
+        if (tmp->value.Area() >  tmp->next_element->value.Area() ){
+            throw std::logic_error("Area is too big");
+        }
+        if (tmp->value.Area() < tmp->prev_element->value.Area() ){
+            throw std::logic_error("error");
+        }
+
+        size++;
+    }
+
+    template<class T>
+    void list<T>::insert_by_number(size_t N, T& value) {
+        forward_iterator it = this->begin();
+        for (size_t i = 1; i <= N+1; ++i) {
+            if (i == N+1) break;
+            ++it;
+        }
+        this->insert_by_it(it, value);
+    }
+//==============================iterator`s-stuff=======================================//
+    template<class T>
+    typename list<T>::forward_iterator list<T>::element::next() {
+        return forward_iterator(this->next_element.get());
+    }
+
+    template<class T>
+    list<T>::forward_iterator::forward_iterator(containers::list<T>::element *ptr) {
+        it_ptr = ptr;
+    }
+
+    template<class T>
+    T& list<T>::forward_iterator::operator*() {
+        return this->it_ptr->value;
+    }
+
+    template<class T>
+    typename list<T>::forward_iterator& list<T>::forward_iterator::operator++() {
+        if (it_ptr == nullptr) throw std::logic_error ("out of list borders");
+        *this = it_ptr->next();
+        return *this;
+    }
+
+    template<class T>
+    typename list<T>::forward_iterator list<T>::forward_iterator::operator++(int) {
+        forward_iterator old = *this;
+        ++*this;
+        return old;
+    }
+
+    template<class T>
+    bool list<T>::forward_iterator::operator==(const forward_iterator& other) const {
+        return it_ptr == other.it_ptr;
+    }
+    template<class T>
+     list<T>& list<T>::operator=(list<T>&& other){
+        size = other.size;
+        first = std::move(other.first);
+    }
+
+    template<class T>
+    bool list<T>::forward_iterator::operator!=(const forward_iterator& other) const {
+        return it_ptr != other.it_ptr;
+    }
+
+    template<class T>
+    T& list<T>::operator[](size_t index)  {
+	if (index < 0 || index >= size) {
+		throw std::out_of_range("out of list's borders");
+	}
+	forward_iterator it = this->begin();
+	for (size_t i = 0; i < index; i++) {
+		it++;
+	}
+	return *it;
+	}
+
+}
+
+
+
+#endif //LIST_H
