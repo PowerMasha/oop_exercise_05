@@ -15,7 +15,7 @@ public:
     }
     Square<T>() = default;
 
-    double Area() {
+    double Area() const {
         double res = 0;
         for (size_t i = 0; i < 3; i++) {
             res += (points[i].x * points[i+1].y) - (points[i+1].x * points[i].y);
