@@ -132,8 +132,9 @@ namespace containers {
             size --;
             return;
         }
-        d_it.it_ptr->prev_element.lock()->next_element = d_it.it_ptr->next_element;
         d_it.it_ptr->next_element->prev_element = d_it.it_ptr->prev_element;
+        d_it.it_ptr->prev_element.lock()->next_element = d_it.it_ptr->next_element;
+
 
         size--;
     }
