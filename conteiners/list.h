@@ -90,7 +90,10 @@ namespace containers {
         }
 
         first = first->next_element;
-        first->prev_element.reset() ;
+        if(first){
+            first->prev_element.reset() ;
+        }
+
         size--;
     }
 
